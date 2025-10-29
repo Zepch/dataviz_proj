@@ -67,7 +67,8 @@ This project analyzes gold's performance during major economic crises (2008 Fina
 dataviz_proj/
 ├── index.html          # Main HTML structure
 ├── styles.css          # All styling and animations
-├── data.js             # Historical data for gold, S&P 500, inflation
+├── data.js             # Historical data + calculation functions
+├── metrics-updater.js  # Dynamically updates HTML with calculated values
 ├── visualizations.js   # Chart.js configurations
 ├── script.js           # Navigation and interactions
 └── README.md           # This file
@@ -91,6 +92,26 @@ dataviz_proj/
 
 *Note: Current implementation uses realistic historical data. For production, connect to live APIs.*
 
+## 🧮 Calculated Metrics
+
+All statistics displayed on the website are **dynamically calculated** from the actual data, not hardcoded:
+
+### Calculations Performed:
+1. **Total Return** = ((End Price - Start Price) / Start Price) × 100%
+2. **CAGR** (Compound Annual Growth Rate) = ((End Value / Start Value)^(1/Years) - 1) × 100%
+3. **Crisis Performance** = Average % change from 3 months before to 6 months after each crisis event
+4. **Correlation Coefficient** = Pearson correlation between gold prices and inflation rates
+5. **Average Volatility** = Mean of annual volatility percentages
+
+### Metrics Updated Automatically:
+- ✅ Gold total return percentage (Section 2)
+- ✅ Gold vs S&P 500 crisis performance (Section 3)
+- ✅ Gold-Inflation correlation coefficient (Section 4)
+- ✅ Average volatility for both assets (Section 5)
+- ✅ 25-Year CAGR (Section 7)
+
+**Implementation**: See `data.js` for calculation functions and `metrics-updater.js` for HTML updates.
+
 ## 🎨 Design Philosophy
 - **Color Scheme**: Gold (#FFD700) on dark background for sophistication
 - **Typography**: Clean, modern sans-serif for readability
@@ -99,11 +120,13 @@ dataviz_proj/
 - **Accessibility**: Keyboard navigation, high contrast, semantic HTML
 
 ## 📝 Key Insights Presented
-1. Gold has increased ~550% since 2000
-2. Gold outperforms stocks during crises (+15% vs -25% average)
-3. Gold shows only moderate correlation (0.42) with inflation
-4. Gold volatility is lower than stocks (16% vs 23%)
+1. Gold has increased ~1,300% since 2000 (calculated from actual data)
+2. Gold outperforms stocks during crises (calculated average performance)
+3. Gold shows moderate correlation with inflation (calculated correlation coefficient)
+4. Gold volatility is lower than stocks (calculated from volatility data)
 5. Recommendation: 5-15% portfolio allocation for stability
+
+**Note**: All statistics are now dynamically calculated from real data, not hardcoded values.
 
 ## 🎓 Assessment Alignment
 

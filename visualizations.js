@@ -44,15 +44,29 @@ const commonOptions = {
 function createGoldTrendChart() {
     const ctx = document.getElementById('goldTrendChart').getContext('2d');
     
-    // Create crisis event markers with simple arrows and non-overlapping labels
+    // Split data into historical and forecast
+    const historicalData = goldData.prices.filter(d => !d.isForecast);
+    const forecastData = goldData.prices.filter(d => d.isForecast);
+    
+    // Add last historical point to forecast for continuity
+    if (historicalData.length > 0 && forecastData.length > 0) {
+        forecastData.unshift(historicalData[historicalData.length - 1]);
+    }
+    
+    // Create crisis event markers with dented arrows (elbow connectors) and labels on top left
     const annotations = {};
-    const labelOffsets = [500, 1500, 600, 400, 550]; // Different vertical offsets to avoid overlap
+    const labelOffsets = [1500, 1000, 700, 1400, 650]; // Different vertical offsets to avoid overlap
+    const horizontalOffset = 80; // Horizontal offset for the dent (pointing left)
     
     crisisEvents.forEach((event, index) => {
         const eventPrice = goldData.prices.find(d => d.date === event.date)?.price || 
                           goldData.prices[Math.floor(goldData.prices.length * (index / crisisEvents.length))].price;
         
         const labelY = eventPrice + labelOffsets[index % labelOffsets.length];
+        
+        // Calculate the elbow point (where horizontal meets vertical)
+        const eventDate = new Date(event.date);
+        const elbowDate = new Date(eventDate.getTime() - (horizontalOffset * 24 * 60 * 60 * 1000)); // Offset in days
         
         // Marker point on the line
         annotations[`marker${index}`] = {
@@ -65,21 +79,32 @@ function createGoldTrendChart() {
             radius: 10
         };
         
-        // Arrow line from label pointing down to marker
-        annotations[`arrow${index}`] = {
+        // Vertical line from marker up to elbow point
+        annotations[`arrowVertical${index}`] = {
             type: 'line',
             xMin: event.date,
             xMax: event.date,
-            yMin: labelY - 30,
-            yMax: eventPrice + 15,
+            yMin: eventPrice + 15,
+            yMax: labelY - 30,
             borderColor: 'rgba(255, 68, 68, 0.8)',
             borderWidth: 2.5
         };
         
-        // Label box above
+        // Horizontal line from elbow point to the left (creating the dent)
+        annotations[`arrowHorizontal${index}`] = {
+            type: 'line',
+            xMin: elbowDate,
+            xMax: event.date,
+            yMin: labelY - 30,
+            yMax: labelY - 30,
+            borderColor: 'rgba(255, 68, 68, 0.8)',
+            borderWidth: 2.5
+        };
+        
+        // Label box at the top left (positioned to the left of the horizontal line)
         annotations[`label${index}`] = {
             type: 'label',
-            xValue: event.date,
+            xValue: elbowDate,
             yValue: labelY,
             backgroundColor: 'rgba(255, 68, 68, 0.95)',
             content: event.title,
@@ -94,21 +119,37 @@ function createGoldTrendChart() {
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: goldData.prices.map(d => d.date),
-            datasets: [{
-                label: 'Gold Price (USD/oz)',
-                data: goldData.prices.map(d => d.price),
-                borderColor: '#FFD700',
-                backgroundColor: 'rgba(255, 215, 0, 0.1)',
-                borderWidth: 4,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 8,
-                pointHoverBackgroundColor: '#FFD700',
-                pointHoverBorderColor: '#ffffff',
-                pointHoverBorderWidth: 3
-            }]
+            datasets: [
+                {
+                    label: 'Gold Price (USD/oz)',
+                    data: historicalData.map(d => ({ x: d.date, y: d.price })),
+                    borderColor: '#FFD700',
+                    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                    borderWidth: 4,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#FFD700',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
+                },
+                {
+                    label: 'Forecast to 2027',
+                    data: forecastData.map(d => ({ x: d.date, y: d.price })),
+                    borderColor: '#FFD700',
+                    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+                    borderWidth: 3,
+                    borderDash: [10, 5], // Dotted line
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#FFD700',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
+                }
+            ]
         },
         options: {
             ...commonOptions,
@@ -117,7 +158,7 @@ function createGoldTrendChart() {
                 annotation: { annotations },
                 title: {
                     display: true,
-                    text: 'Gold Price Journey: 2000-2025 with Major Events',
+                    text: 'Gold Price Journey: 2000-2027 (with Forecast) and Major Events',
                     color: '#FFD700',
                     font: { size: 18, weight: 'bold' }
                 }
@@ -141,6 +182,11 @@ function createGoldTrendChart() {
                         callback: value => '$' + value.toLocaleString()
                     }
                 }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
             }
         }
     });
@@ -150,20 +196,28 @@ function createGoldTrendChart() {
 function createGoldVsStocksChart() {
     const ctx = document.getElementById('goldVsStocksChart').getContext('2d');
     
+    // Filter out forecast data for this comparison chart
+    const historicalGold = goldData.prices.filter(d => !d.isForecast);
+    
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: goldData.prices.map(d => d.date),
+            labels: historicalGold.map(d => d.date),
             datasets: [
                 {
                     label: 'Gold (Normalized)',
-                    data: goldData.prices.map(d => (d.price / 280) * 100),
+                    data: historicalGold.map(d => (d.price / 280) * 100),
                     borderColor: '#FFD700',
                     backgroundColor: 'rgba(255, 215, 0, 0.1)',
                     borderWidth: 3,
                     fill: false,
                     tension: 0.4,
-                    yAxisID: 'y'
+                    yAxisID: 'y',
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#FFD700',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
                 },
                 {
                     label: 'S&P 500',
@@ -173,7 +227,12 @@ function createGoldVsStocksChart() {
                     borderWidth: 3,
                     fill: false,
                     tension: 0.4,
-                    yAxisID: 'y'
+                    yAxisID: 'y',
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#4169E1',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
                 }
             ]
         },
@@ -215,9 +274,12 @@ function createGoldVsStocksChart() {
 function createGoldInflationChart() {
     const ctx = document.getElementById('goldInflationChart').getContext('2d');
     
+    // Filter out forecast data
+    const historicalGold = goldData.prices.filter(d => !d.isForecast);
+    
     // Create aligned datasets
     const alignedData = inflationData.data.map(inf => {
-        const goldPoint = goldData.prices.find(g => g.date === inf.date);
+        const goldPoint = historicalGold.find(g => g.date === inf.date);
         return {
             date: inf.date,
             inflation: inf.rate,
@@ -237,7 +299,12 @@ function createGoldInflationChart() {
                     backgroundColor: 'rgba(255, 215, 0, 0.1)',
                     borderWidth: 3,
                     yAxisID: 'y',
-                    tension: 0.4
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#FFD700',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
                 },
                 {
                     label: 'Inflation Rate (%)',
@@ -246,7 +313,12 @@ function createGoldInflationChart() {
                     backgroundColor: 'rgba(255, 68, 68, 0.1)',
                     borderWidth: 3,
                     yAxisID: 'y1',
-                    tension: 0.4
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#FF4444',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
                 }
             ]
         },
@@ -296,6 +368,10 @@ function createGoldInflationChart() {
                         color: '#FF4444'
                     }
                 }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
             }
         }
     });
@@ -315,14 +391,24 @@ function createVolatilityChart() {
                     data: volatilityData.gold.map(d => d.volatility),
                     backgroundColor: 'rgba(255, 215, 0, 0.7)',
                     borderColor: '#FFD700',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#FFD700',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
                 },
                 {
                     label: 'S&P 500 Volatility',
                     data: volatilityData.sp500.map(d => d.volatility),
                     backgroundColor: 'rgba(65, 105, 225, 0.7)',
                     borderColor: '#4169E1',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#4169E1',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
                 }
             ]
         },
@@ -368,20 +454,26 @@ let currentDataIndex = 0;
 function createInteractiveChart() {
     const ctx = document.getElementById('interactiveChart').getContext('2d');
     
+    // Use only historical data for interactive timeline
+    const historicalData = goldData.prices.filter(d => !d.isForecast);
+    
     interactiveChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [goldData.prices[0].date],
+            labels: [historicalData[0].date],
             datasets: [{
                 label: 'Gold Price Over Time',
-                data: [goldData.prices[0].price],
+                data: [historicalData[0].price],
                 borderColor: '#FFD700',
                 backgroundColor: 'rgba(255, 215, 0, 0.2)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4,
-                pointRadius: 5,
-                pointBackgroundColor: '#FFD700'
+                pointRadius: 0,
+                pointHoverRadius: 8,
+                pointHoverBackgroundColor: '#FFD700',
+                pointHoverBorderColor: '#ffffff',
+                pointHoverBorderWidth: 3
             }]
         },
         options: {
@@ -398,8 +490,6 @@ function createInteractiveChart() {
                 },
                 y: {
                     beginAtZero: false,
-                    min: 200,
-                    max: 3000,
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
                     ticks: {
                         color: '#cccccc',
@@ -412,19 +502,48 @@ function createInteractiveChart() {
 }
 
 function updateInteractiveChart(index) {
-    const dataSlice = goldData.prices.slice(0, index + 1);
+    // Use only historical data
+    const historicalData = goldData.prices.filter(d => !d.isForecast);
+    const dataSlice = historicalData.slice(0, index + 1);
+    
+    // Calculate dynamic Y-axis range
+    const prices = dataSlice.map(d => d.price);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const range = maxPrice - minPrice;
+    const padding = range * 0.15; // 15% padding
+    
+    // Calculate appropriate step size for uniform ticks
+    const rawRange = range + (padding * 2);
+    let stepSize;
+    if (rawRange < 100) stepSize = 10;
+    else if (rawRange < 500) stepSize = 50;
+    else if (rawRange < 1000) stepSize = 100;
+    else if (rawRange < 2000) stepSize = 200;
+    else if (rawRange < 5000) stepSize = 500;
+    else stepSize = 1000;
+    
+    // Round to step boundaries for uniform ticks
+    const roundedMin = Math.floor((minPrice - padding) / stepSize) * stepSize;
+    const roundedMax = Math.ceil((maxPrice + padding) / stepSize) * stepSize;
     
     interactiveChart.data.labels = dataSlice.map(d => d.date);
     interactiveChart.data.datasets[0].data = dataSlice.map(d => d.price);
+    
+    // Update Y-axis range dynamically with uniform steps
+    interactiveChart.options.scales.y.min = Math.max(0, roundedMin);
+    interactiveChart.options.scales.y.max = roundedMax;
+    interactiveChart.options.scales.y.ticks.stepSize = stepSize;
+    
     interactiveChart.update('none');
     
     // Update event info
-    const currentPrice = goldData.prices[index];
-    const startPrice = goldData.prices[0];
+    const currentPrice = historicalData[index];
+    const startPrice = historicalData[0];
     const change = ((currentPrice.price - startPrice.price) / startPrice.price * 100).toFixed(1);
     
     document.getElementById('currentDate').textContent = new Date(currentPrice.date).getFullYear();
-    document.getElementById('goldPrice').textContent = '$' + currentPrice.price;
+    document.getElementById('goldPrice').textContent = '$' + currentPrice.price.toLocaleString();
     document.getElementById('priceChange').textContent = (change > 0 ? '+' : '') + change + '%';
     
     // Check if there's a crisis event near this date
@@ -497,12 +616,15 @@ function initializeVisualizations() {
     
     // Setup interactive timeline slider
     const slider = document.getElementById('timeSlider');
-    if (slider && goldData.prices.length > 0) {
-        slider.max = goldData.prices.length - 1;
-        slider.addEventListener('input', (e) => {
-            const index = parseInt(e.target.value);
-            updateInteractiveChart(index);
-        });
+    if (slider) {
+        const historicalData = goldData.prices.filter(d => !d.isForecast);
+        if (historicalData.length > 0) {
+            slider.max = historicalData.length - 1;
+            slider.addEventListener('input', (e) => {
+                const index = parseInt(e.target.value);
+                updateInteractiveChart(index);
+            });
+        }
     }
 }
 
