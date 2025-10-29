@@ -202,37 +202,75 @@ const goldData = {
 // Interpolate to monthly data
 const monthlyGoldPrices = interpolateMonthly(goldData.prices);
 
-// Generate forecast to 2027 using trend analysis
+// Generate forecast using Excel's FORECAST.ETS method (Exponential Triple Smoothing)
 function generateForecast(historicalData, targetDate) {
     const lastPoint = historicalData[historicalData.length - 1];
     const lastDate = new Date(lastPoint.date);
     const endDate = new Date(targetDate);
     
-    // Calculate average monthly growth rate from last 24 months
-    const recentData = historicalData.slice(-24);
-    let totalGrowth = 0;
-    for (let i = 1; i < recentData.length; i++) {
-        const growth = (recentData[i].price - recentData[i-1].price) / recentData[i-1].price;
-        totalGrowth += growth;
-    }
-    const avgMonthlyGrowth = totalGrowth / (recentData.length - 1);
+    // Filter to use only monthly data (exclude daily October prices that got interpolated)
+    // Keep only data where date is first of month
+    const monthlyOnly = historicalData.filter(d => {
+        const date = new Date(d.date);
+        return date.getDate() === 1;
+    });
     
-    // Add some volatility factor (±2-4%)
+    // Excel's FORECAST.ETS uses Exponential Triple Smoothing (Holt-Winters)
+    // Alpha (level), Beta (trend), Gamma (seasonality)
+    const alpha = 0.3;  // Level smoothing
+    const beta = 0.1;   // Trend smoothing
+    const gamma = 0.2;  // Seasonal smoothing
+    const seasonLength = 12; // 12-month seasonality
+    
+    // Initialize components using last 24 months
+    const trainingData = monthlyOnly.slice(-Math.max(24, seasonLength * 2));
+    
+    // Calculate initial level (average of first season)
+    let level = trainingData.slice(0, seasonLength).reduce((sum, d) => sum + d.price, 0) / seasonLength;
+    
+    // Calculate initial trend (average monthly change)
+    let trend = 0;
+    for (let i = seasonLength; i < Math.min(seasonLength * 2, trainingData.length); i++) {
+        trend += (trainingData[i].price - trainingData[i - seasonLength].price) / seasonLength;
+    }
+    trend = trend / Math.min(seasonLength, trainingData.length - seasonLength);
+    
+    // Calculate initial seasonal indices
+    const seasonal = new Array(seasonLength).fill(0);
+    for (let i = 0; i < trainingData.length; i++) {
+        const seasonIndex = i % seasonLength;
+        seasonal[seasonIndex] += trainingData[i].price / (level + trend * i);
+    }
+    for (let i = 0; i < seasonLength; i++) {
+        seasonal[i] = seasonal[i] / Math.ceil(trainingData.length / seasonLength);
+    }
+    
+    // Update components with training data
+    for (let i = 0; i < trainingData.length; i++) {
+        const seasonIndex = i % seasonLength;
+        const oldLevel = level;
+        const oldTrend = trend;
+        
+        level = alpha * (trainingData[i].price / seasonal[seasonIndex]) + (1 - alpha) * (oldLevel + oldTrend);
+        trend = beta * (level - oldLevel) + (1 - beta) * oldTrend;
+        seasonal[seasonIndex] = gamma * (trainingData[i].price / level) + (1 - gamma) * seasonal[seasonIndex];
+    }
+    
+    // Generate forecast
     const forecast = [];
-    let currentPrice = lastPoint.price;
     let currentDate = new Date(lastDate);
     currentDate.setMonth(currentDate.getMonth() + 1);
+    let monthsAhead = 0;
     
     while (currentDate <= endDate) {
-        // Apply growth with some random variation
-        const volatility = (Math.random() - 0.5) * 0.04; // ±2% random variation
-        const growth = avgMonthlyGrowth + volatility;
-        currentPrice = currentPrice * (1 + growth);
+        monthsAhead++;
+        const seasonIndex = (trainingData.length + monthsAhead - 1) % seasonLength;
+        const forecastValue = (level + trend * monthsAhead) * seasonal[seasonIndex];
         
         const dateStr = currentDate.toISOString().substring(0, 8) + '01';
         forecast.push({
             date: dateStr,
-            price: Math.round(currentPrice * 100) / 100,
+            price: Math.round(forecastValue * 100) / 100,
             isForecast: true
         });
         
@@ -508,7 +546,7 @@ const inflationData = {
 inflationData.data = interpolateMonthly(inflationData.data.map(d => ({ date: d.date, price: d.rate })))
     .map(d => ({ date: d.date, rate: d.price }));
 
-// Crisis events for annotations - Updated with CSV-matched dates
+// Crisis events for annotations - Ordered chronologically
 const crisisEvents = [
     {
         date: '2008-09-01',
@@ -519,20 +557,20 @@ const crisisEvents = [
         color: 'rgba(255, 68, 68, 0.3)'
     },
     {
+        date: '2011-07-01',
+        title: 'Black Monday - US Credit Downgrade',
+        description: 'S&P downgrades US credit rating from AAA to AA+, triggering global market crash. S&P 500 falls 6.7% in single day',
+        goldPrice: 1505.50,
+        sp500: 1218.89,
+        color: 'rgba(255, 68, 68, 0.3)'
+    },
+    {
         date: '2020-03-01',
         title: 'COVID-19 Pandemic',
         description: 'Global pandemic causes market turmoil and flight to safety',
         goldPrice: 1622.10,
         sp500: 2584.59,
         color: 'rgba(255, 68, 68, 0.3)'
-    },
-    {
-        date: '2025-10-20',
-        title: 'Gold Reaches Record High',
-        description: 'Gold surges to all-time high of $4,359 amid economic uncertainty and geopolitical tensions',
-        goldPrice: 4359.40,
-        sp500: 6925.75,
-        color: 'rgba(68, 255, 68, 0.3)'
     },
     {
         date: '2022-03-01',
@@ -549,6 +587,14 @@ const crisisEvents = [
         goldPrice: 2734.00,
         sp500: 5705.45,
         color: 'rgba(255, 165, 0, 0.3)'
+    },
+    {
+        date: '2025-10-20',
+        title: 'Gold Reaches Record High',
+        description: 'Gold surges to all-time high of $4,359 amid economic uncertainty and geopolitical tensions',
+        goldPrice: 4359.40,
+        sp500: 6925.75,
+        color: 'rgba(68, 255, 68, 0.3)'
     }
 ];
 

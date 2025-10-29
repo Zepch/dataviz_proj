@@ -55,8 +55,8 @@ function createGoldTrendChart() {
     
     // Create crisis event markers with dented arrows (elbow connectors) and labels on top left
     const annotations = {};
-    const labelOffsets = [1500, 1000, 700, 1400, 650]; // Different vertical offsets to avoid overlap
-    const horizontalOffset = 80; // Horizontal offset for the dent (pointing left)
+    const labelOffsets = [1000, 1500, 900, 1400, -1500, 950]; // Different vertical offsets to avoid overlap
+    const horizontalOffset = 0; // Horizontal offset for the dent (pointing left)
     
     crisisEvents.forEach((event, index) => {
         const eventPrice = goldData.prices.find(d => d.date === event.date)?.price || 
@@ -505,6 +505,8 @@ function calculateEventPerformance(eventDate, historicalData, eventTitle) {
         monthsAfter = 6; // 6 months
     } else if (eventTitle.includes('Russia-Ukraine') || eventTitle.includes('Ukraine')) {
         monthsAfter = 36; // 5 months
+    } else if (eventTitle.includes('Black Monday')) {
+        monthsAfter = 1;
     } else if (eventTitle.includes('Trump') || eventTitle.includes('Tariffs')) {
         // Calculate months from event to last data point (Oct 27, 2025)
         monthsAfter = historicalData.length - eventIndex - 1;

@@ -17,10 +17,20 @@ function updateMetricsInHTML() {
         totalReturnElement.textContent = '~' + Math.round(calculatedMetrics.goldTotalReturn / 100) * 100 + '%';
     }
     
-    // Update the detailed text
+    // Get the last forecast value (2027-12-31)
+    const forecastPrices = goldData.prices.filter(d => d.isForecast);
+    const lastForecastPrice = forecastPrices.length > 0 ? forecastPrices[forecastPrices.length - 1].price : 0;
+    
+    // Update the detailed text with forecast
     const insightText = document.querySelector('#slide-1 .insight-box p');
     if (insightText) {
-        insightText.innerHTML = `Gold has increased by <span class="highlight">~${Math.round(calculatedMetrics.goldTotalReturn / 100) * 100}%</span> since 2000, reaching record highs above $4,300 in 2025`;
+        insightText.innerHTML = `Gold has increased by <span class="highlight">~${Math.round(calculatedMetrics.goldTotalReturn / 100) * 100}%</span> since 2000, reaching record highs above $4,300 in 2025. Using Exponential Triple Smoothing, gold is projected to reach <span class="highlight">$${lastForecastPrice.toLocaleString()}</span> by the end of <span class="highlight">2027</span>.`;
+    }
+    
+    // Also update the forecast price element if it exists separately
+    const forecastPriceElement = document.getElementById('forecast-price');
+    if (forecastPriceElement) {
+        forecastPriceElement.textContent = '$' + lastForecastPrice.toLocaleString();
     }
     
     // Section 3: Crisis Performance Stats
