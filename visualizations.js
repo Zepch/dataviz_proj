@@ -405,10 +405,9 @@ function createGoldInflationChart() {
 function createVolatilityChart() {
     const ctx = document.getElementById('volatilityChart').getContext('2d');
     
-    // Sample data to show every 3rd point for better visualization (reduce from ~290 to ~97 points)
-    const sampleEveryN = 3;
-    const sampledGold = volatilityData.gold.filter((_, index) => index % sampleEveryN === 0);
-    const sampledSP500 = volatilityData.sp500.filter((_, index) => index % sampleEveryN === 0);
+    // Use all data points to highlight major events (no sampling)
+    const sampledGold = volatilityData.gold;
+    const sampledSP500 = volatilityData.sp500;
     
     new Chart(ctx, {
         type: 'line',
@@ -422,7 +421,7 @@ function createVolatilityChart() {
                     borderColor: '#FFD700',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4,
+                    tension: 0.2, // Reduced tension for sharper peaks
                     pointRadius: 0,
                     pointHoverRadius: 6,
                     pointHoverBackgroundColor: '#FFD700',
@@ -436,7 +435,7 @@ function createVolatilityChart() {
                     borderColor: '#4169E1',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4,
+                    tension: 0.2, // Reduced tension for sharper peaks
                     pointRadius: 0,
                     pointHoverRadius: 6,
                     pointHoverBackgroundColor: '#4169E1',
@@ -451,7 +450,7 @@ function createVolatilityChart() {
                 ...commonOptions.plugins,
                 title: {
                     display: true,
-                    text: 'Rolling Volatility Comparison (30-Period Window)',
+                    text: 'Market Volatility Comparison - Major Crisis Events Highlighted',
                     color: '#FFD700',
                     font: { size: 18 }
                 },
@@ -482,6 +481,10 @@ function createVolatilityChart() {
                         color: '#FFD700'
                     }
                 }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
             }
         }
     });
