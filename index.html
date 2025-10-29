@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold: The Ultimate Safe Haven? - Interactive Data Story</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div id="progress-bar"></div>
+
+    <!-- Navigation -->
+    <nav id="nav-dots">
+        <button class="nav-dot active" data-section="0" aria-label="Section 1"></button>
+        <button class="nav-dot" data-section="1" aria-label="Section 2"></button>
+        <button class="nav-dot" data-section="2" aria-label="Section 3"></button>
+        <button class="nav-dot" data-section="3" aria-label="Section 4"></button>
+        <button class="nav-dot" data-section="4" aria-label="Section 5"></button>
+        <button class="nav-dot" data-section="5" aria-label="Section 6"></button>
+        <button class="nav-dot" data-section="6" aria-label="Section 7"></button>
+    </nav>
+
+    <!-- Section 1: Title/Intro -->
+    <section class="slide active" id="slide-0">
+        <div class="container">
+            <div class="title-content">
+                <h1 class="main-title fade-in">
+                    <span class="gold-text">GOLD</span>
+                </h1>
+                <h2 class="subtitle fade-in-delay-1">The Ultimate Safe Haven?</h2>
+                <p class="intro-text fade-in-delay-2">
+                    Exploring gold's performance during global uncertainty
+                </p>
+                <div class="uncertainty-examples fade-in-delay-3">
+                    <div class="uncertainty-tag">📉 2008 Financial Crisis</div>
+                    <div class="uncertainty-tag">🦠 COVID-19 Pandemic</div>
+                    <div class="uncertainty-tag">🌐 2025 Trade Wars</div>
+                </div>
+                <div class="scroll-indicator fade-in-delay-4">
+                    <span>Scroll to explore</span>
+                    <div class="arrow-down"></div>
+                </div>
+            </div>
+            <div id="globe-container"></div>
+        </div>
+    </section>
+
+    <!-- Section 2: Long-term Gold Price Trend -->
+    <section class="slide" id="slide-1">
+        <div class="container">
+            <h2 class="section-title">The Golden Journey: 2000-2025</h2>
+            <p class="section-subtitle">Gold prices through economic storms and sunny skies</p>
+            <div class="chart-container">
+                <canvas id="goldTrendChart"></canvas>
+            </div>
+            <div class="insight-box">
+                <h3>📈 Key Insight</h3>
+                <p>Gold has increased by <span class="highlight">~550%</span> since 2000, with sharp spikes during major crises</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Gold vs S&P 500 -->
+    <section class="slide" id="slide-2">
+        <div class="container">
+            <h2 class="section-title">The Safe Haven Test: Gold vs Stock Market</h2>
+            <p class="section-subtitle">How do they perform during uncertainty?</p>
+            <div class="chart-container">
+                <canvas id="goldVsStocksChart"></canvas>
+            </div>
+            <div class="comparison-stats">
+                <div class="stat-card">
+                    <h4>🥇 Gold Performance</h4>
+                    <p class="stat-number">+15%</p>
+                    <p class="stat-label">Average during crises</p>
+                </div>
+                <div class="stat-card">
+                    <h4>📊 S&P 500 Performance</h4>
+                    <p class="stat-number">-25%</p>
+                    <p class="stat-label">Average during crises</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Gold vs Inflation -->
+    <section class="slide" id="slide-3">
+        <div class="container">
+            <h2 class="section-title">Inflation Hedge: Does Gold Really Protect?</h2>
+            <p class="section-subtitle">Examining the relationship between gold and inflation</p>
+            <div class="chart-container">
+                <canvas id="goldInflationChart"></canvas>
+            </div>
+            <div class="insight-box">
+                <h3>🔍 Reality Check</h3>
+                <p>Correlation: <span class="highlight">0.42</span> - Gold shows only <strong>moderate</strong> correlation with inflation</p>
+                <p class="small-text">It's not the perfect inflation hedge people think it is!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Volatility Comparison -->
+    <section class="slide" id="slide-4">
+        <div class="container">
+            <h2 class="section-title">Stability Analysis: Rolling Volatility</h2>
+            <p class="section-subtitle">Which asset provides smoother returns?</p>
+            <div class="chart-container">
+                <canvas id="volatilityChart"></canvas>
+            </div>
+            <div class="comparison-stats">
+                <div class="stat-card">
+                    <h4>🥇 Gold Volatility</h4>
+                    <p class="stat-number">16%</p>
+                    <p class="stat-label">Annual average</p>
+                </div>
+                <div class="stat-card">
+                    <h4>📊 S&P 500 Volatility</h4>
+                    <p class="stat-number">23%</p>
+                    <p class="stat-label">Annual average</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 6: Interactive Timeline Explorer -->
+    <section class="slide" id="slide-5">
+        <div class="container">
+            <h2 class="section-title">Interactive Timeline: Explore Key Events</h2>
+            <p class="section-subtitle">Use the slider to see how gold reacted to global events</p>
+            
+            <div class="timeline-controls">
+                <input type="range" id="timeSlider" min="0" max="100" value="0" step="1">
+                <div id="currentDate">2000</div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="interactiveChart"></canvas>
+            </div>
+            
+            <div id="eventInfo" class="event-info">
+                <h3>📅 <span id="eventTitle">Start of Journey</span></h3>
+                <p id="eventDescription">Beginning of our analysis period</p>
+                <div class="event-stats">
+                    <div>Gold Price: <span id="goldPrice">$280</span></div>
+                    <div>Change: <span id="priceChange">-</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 7: Conclusion / Summary Infographic -->
+    <section class="slide" id="slide-6">
+        <div class="container">
+            <h2 class="section-title">The Verdict: When Does Gold Shine?</h2>
+            
+            <div class="verdict-grid">
+                <div class="verdict-card positive">
+                    <div class="verdict-icon">✅</div>
+                    <h3>Gold Works Best When:</h3>
+                    <ul>
+                        <li>Financial markets crash</li>
+                        <li>Geopolitical tensions rise</li>
+                        <li>Currency devaluation occurs</li>
+                        <li>Central banks print money</li>
+                    </ul>
+                </div>
+                
+                <div class="verdict-card negative">
+                    <div class="verdict-icon">❌</div>
+                    <h3>Gold Underperforms When:</h3>
+                    <ul>
+                        <li>Stock markets boom</li>
+                        <li>Interest rates rise sharply</li>
+                        <li>Economic growth is strong</li>
+                        <li>Dollar strengthens</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="final-recommendation">
+                <h3>💡 Investment Recommendation</h3>
+                <p class="recommendation-text">
+                    Gold is <strong>not a get-rich-quick asset</strong>, but a <strong>portfolio stabilizer</strong>. 
+                    Allocate <span class="highlight">5-15%</span> of your portfolio to gold as insurance against uncertainty.
+                </p>
+                <div class="performance-summary">
+                    <div class="perf-item">
+                        <span class="perf-label">25-Year CAGR:</span>
+                        <span class="perf-value">7.8%</span>
+                    </div>
+                    <div class="perf-item">
+                        <span class="perf-label">Crisis Protection:</span>
+                        <span class="perf-value">Strong ✅</span>
+                    </div>
+                    <div class="perf-item">
+                        <span class="perf-label">Inflation Hedge:</span>
+                        <span class="perf-value">Moderate ⚠️</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="credits">
+                <p><strong>Data Sources:</strong> Yahoo Finance, FRED Economic Data, World Gold Council</p>
+                <p><strong>Tools Used:</strong> Chart.js, D3.js, JavaScript, HTML/CSS</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Load data and scripts -->
+    <!-- <script src="csv-loader.js"></script> -->
+    <script src="data.js"></script>
+    <script src="visualizations.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
