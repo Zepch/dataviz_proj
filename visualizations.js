@@ -199,14 +199,18 @@ function createGoldVsStocksChart() {
     // Filter out forecast data for this comparison chart
     const historicalGold = goldData.prices.filter(d => !d.isForecast);
     
+    // Calculate $100 investment growth from 2000
+    const goldBase = historicalGold[0].price;
+    const sp500Base = sp500Data.prices[0].price;
+    
     new Chart(ctx, {
         type: 'line',
         data: {
             labels: historicalGold.map(d => d.date),
             datasets: [
                 {
-                    label: 'Gold (Normalized)',
-                    data: historicalGold.map(d => (d.price / 280) * 100),
+                    label: '$100 in Gold (2000)',
+                    data: historicalGold.map(d => (d.price / goldBase) * 100),
                     borderColor: '#FFD700',
                     backgroundColor: 'rgba(255, 215, 0, 0.1)',
                     borderWidth: 3,
@@ -220,8 +224,8 @@ function createGoldVsStocksChart() {
                     pointHoverBorderWidth: 3
                 },
                 {
-                    label: 'S&P 500',
-                    data: sp500Data.prices.map(d => d.price),
+                    label: '$100 in S&P 500 (2000)',
+                    data: sp500Data.prices.map(d => (d.price / sp500Base) * 100),
                     borderColor: '#4169E1',
                     backgroundColor: 'rgba(65, 105, 225, 0.1)',
                     borderWidth: 3,
@@ -242,7 +246,7 @@ function createGoldVsStocksChart() {
                 ...commonOptions.plugins,
                 title: {
                     display: true,
-                    text: 'Indexed Performance: Gold vs S&P 500 (2000 = 100)',
+                    text: 'Growth of $100 Invested in 2000',
                     color: '#FFD700',
                     font: { size: 18 }
                 }
@@ -258,7 +262,12 @@ function createGoldVsStocksChart() {
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
                     ticks: {
                         color: '#cccccc',
-                        callback: value => value
+                        callback: value => '$' + value.toFixed(0)
+                    },
+                    title: {
+                        display: true,
+                        text: 'Portfolio Value',
+                        color: '#FFD700'
                     }
                 }
             },
