@@ -361,12 +361,71 @@ const sp500Data = {
         { date: '2025-07-01', price: 6645.30 },
         { date: '2025-08-01', price: 6735.50 },
         { date: '2025-09-01', price: 6850.20 },
-        { date: '2025-10-01', price: 6925.75 }
+        { date: '2025-10-01', price: 6711.20 },
+        { date: '2025-10-02', price: 6715.35 },
+        { date: '2025-10-03', price: 6715.79 },
+        { date: '2025-10-06', price: 6740.28 },
+        { date: '2025-10-07', price: 6714.59 },
+        { date: '2025-10-08', price: 6753.72 },
+        { date: '2025-10-09', price: 6735.11 },
+        { date: '2025-10-10', price: 6552.51 },
+        { date: '2025-10-13', price: 6654.72 },
+        { date: '2025-10-14', price: 6644.31 },
+        { date: '2025-10-15', price: 6671.06 },
+        { date: '2025-10-16', price: 6629.07 },
+        { date: '2025-10-17', price: 6664.01 },
+        { date: '2025-10-20', price: 6735.13 },
+        { date: '2025-10-21', price: 6735.35 },
+        { date: '2025-10-22', price: 6699.40 },
+        { date: '2025-10-23', price: 6738.44 },
+        { date: '2025-10-24', price: 6791.69 },
+        { date: '2025-10-27', price: 6875.16 },
+        { date: '2025-10-28', price: 6890.89 }
     ]
 };
 
 // Interpolate S&P 500 to monthly data
 sp500Data.prices = interpolateMonthly(sp500Data.prices);
+
+// Calculate rolling volatility from actual price data
+function calculateRollingVolatility(prices, windowSize = 30) {
+    const volatilityData = [];
+    
+    for (let i = windowSize; i < prices.length; i++) {
+        const window = prices.slice(i - windowSize, i);
+        
+        // Calculate daily/period returns
+        const returns = [];
+        for (let j = 1; j < window.length; j++) {
+            const periodReturn = (window[j].price - window[j-1].price) / window[j-1].price;
+            returns.push(periodReturn);
+        }
+        
+        // Calculate standard deviation of returns
+        const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+        const squaredDiffs = returns.map(r => Math.pow(r - mean, 2));
+        const variance = squaredDiffs.reduce((sum, sd) => sum + sd, 0) / returns.length;
+        const stdDev = Math.sqrt(variance);
+        
+        // Annualize volatility (for monthly data, multiply by sqrt(12))
+        const annualizedVolatility = stdDev * Math.sqrt(12) * 100;
+        
+        volatilityData.push({
+            date: prices[i].date,
+            volatility: Math.round(annualizedVolatility * 100) / 100
+        });
+    }
+    
+    return volatilityData;
+}
+
+// Calculate volatility for both gold and S&P 500 using actual price data
+// Only use historical data (no forecasts) for gold
+const historicalGoldForVolatility = monthlyGoldPrices;
+const volatilityData = {
+    gold: calculateRollingVolatility(historicalGoldForVolatility, 30),
+    sp500: calculateRollingVolatility(sp500Data.prices, 30)
+};
 
 const inflationData = {
     // Date, CPI Year-over-Year % change from CSV
@@ -493,50 +552,6 @@ const crisisEvents = [
     }
 ];
 
-// Volatility data (simplified rolling 30-day volatility)
-const volatilityData = {
-    gold: [
-        { date: '2008-01-01', volatility: 18 },
-        { date: '2009-01-01', volatility: 16 },
-        { date: '2010-01-01', volatility: 14 },
-        { date: '2011-01-01', volatility: 19 },
-        { date: '2012-01-01', volatility: 15 },
-        { date: '2013-01-01', volatility: 17 },
-        { date: '2014-01-01', volatility: 13 },
-        { date: '2015-01-01', volatility: 14 },
-        { date: '2016-01-01', volatility: 16 },
-        { date: '2017-01-01', volatility: 12 },
-        { date: '2018-01-01', volatility: 13 },
-        { date: '2019-01-01', volatility: 14 },
-        { date: '2020-01-01', volatility: 22 },
-        { date: '2021-01-01', volatility: 16 },
-        { date: '2022-01-01', volatility: 18 },
-        { date: '2023-01-01', volatility: 15 },
-        { date: '2024-01-01', volatility: 14 },
-        { date: '2025-01-01', volatility: 19 }
-    ],
-    sp500: [
-        { date: '2008-01-01', volatility: 35 },
-        { date: '2009-01-01', volatility: 28 },
-        { date: '2010-01-01', volatility: 22 },
-        { date: '2011-01-01', volatility: 25 },
-        { date: '2012-01-01', volatility: 18 },
-        { date: '2013-01-01', volatility: 15 },
-        { date: '2014-01-01', volatility: 14 },
-        { date: '2015-01-01', volatility: 17 },
-        { date: '2016-01-01', volatility: 19 },
-        { date: '2017-01-01', volatility: 11 },
-        { date: '2018-01-01', volatility: 20 },
-        { date: '2019-01-01', volatility: 16 },
-        { date: '2020-01-01', volatility: 38 },
-        { date: '2021-01-01', volatility: 20 },
-        { date: '2022-01-01', volatility: 25 },
-        { date: '2023-01-01', volatility: 19 },
-        { date: '2024-01-01', volatility: 17 },
-        { date: '2025-01-01', volatility: 23 }
-    ]
-};
-
 // Export data for use in visualizations
 window.goldData = goldData;
 window.sp500Data = sp500Data;
@@ -659,6 +674,10 @@ console.log('✅ Data loaded successfully from embedded CSV data!');
 console.log('Gold data points:', goldData.prices.length);
 console.log('S&P 500 data points:', sp500Data.prices.length);
 console.log('Inflation data points:', inflationData.data.length);
+console.log('Volatility data points (Gold):', volatilityData.gold.length);
+console.log('Volatility data points (S&P 500):', volatilityData.sp500.length);
+console.log('Sample volatility (Gold first 3):', volatilityData.gold.slice(0, 3));
+console.log('Sample volatility (S&P 500 first 3):', volatilityData.sp500.slice(0, 3));
 console.log('📊 Calculated Metrics:');
 console.log('  Gold Total Return:', calculatedMetrics.goldTotalReturn.toFixed(1) + '%');
 console.log('  Gold CAGR:', calculatedMetrics.goldCAGR.toFixed(1) + '%');
@@ -668,5 +687,3 @@ console.log('  Gold Avg Volatility:', calculatedMetrics.goldAvgVolatility.toFixe
 console.log('  S&P 500 Avg Volatility:', calculatedMetrics.sp500AvgVolatility.toFixed(1) + '%');
 console.log('  Gold-Inflation Correlation:', calculatedMetrics.goldInflationCorrelation.toFixed(2));
 console.log('Crisis events:', crisisEvents.length);
-console.log('Volatility data points (Gold):', volatilityData.gold.length);
-console.log('Volatility data points (S&P 500):', volatilityData.sp500.length);

@@ -203,6 +203,21 @@ function createGoldVsStocksChart() {
     const goldBase = historicalGold[0].price;
     const sp500Base = sp500Data.prices[0].price;
     
+    // Create a map of S&P 500 prices by date
+    const sp500Map = new Map();
+    sp500Data.prices.forEach(item => {
+        sp500Map.set(item.date, item.price);
+    });
+    
+    // Map S&P 500 to gold's timeline
+    let lastKnownSP500Price = sp500Base;
+    const sp500MappedData = historicalGold.map(goldItem => {
+        if (sp500Map.has(goldItem.date)) {
+            lastKnownSP500Price = sp500Map.get(goldItem.date);
+        }
+        return (lastKnownSP500Price / sp500Base) * 100;
+    });
+    
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -225,7 +240,7 @@ function createGoldVsStocksChart() {
                 },
                 {
                     label: '$100 in S&P 500 (2000)',
-                    data: sp500Data.prices.map(d => (d.price / sp500Base) * 100),
+                    data: sp500MappedData,
                     borderColor: '#4169E1',
                     backgroundColor: 'rgba(65, 105, 225, 0.1)',
                     borderWidth: 3,
@@ -390,34 +405,43 @@ function createGoldInflationChart() {
 function createVolatilityChart() {
     const ctx = document.getElementById('volatilityChart').getContext('2d');
     
+    // Sample data to show every 3rd point for better visualization (reduce from ~290 to ~97 points)
+    const sampleEveryN = 3;
+    const sampledGold = volatilityData.gold.filter((_, index) => index % sampleEveryN === 0);
+    const sampledSP500 = volatilityData.sp500.filter((_, index) => index % sampleEveryN === 0);
+    
     new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
-            labels: volatilityData.gold.map(d => d.date),
+            labels: sampledGold.map(d => d.date),
             datasets: [
                 {
                     label: 'Gold Volatility',
-                    data: volatilityData.gold.map(d => d.volatility),
-                    backgroundColor: 'rgba(255, 215, 0, 0.7)',
+                    data: sampledGold.map(d => d.volatility),
+                    backgroundColor: 'rgba(255, 215, 0, 0.1)',
                     borderColor: '#FFD700',
-                    borderWidth: 1,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
                     pointRadius: 0,
-                    pointHoverRadius: 8,
+                    pointHoverRadius: 6,
                     pointHoverBackgroundColor: '#FFD700',
                     pointHoverBorderColor: '#ffffff',
-                    pointHoverBorderWidth: 3
+                    pointHoverBorderWidth: 2
                 },
                 {
                     label: 'S&P 500 Volatility',
-                    data: volatilityData.sp500.map(d => d.volatility),
-                    backgroundColor: 'rgba(65, 105, 225, 0.7)',
+                    data: sampledSP500.map(d => d.volatility),
+                    backgroundColor: 'rgba(65, 105, 225, 0.1)',
                     borderColor: '#4169E1',
-                    borderWidth: 1,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
                     pointRadius: 0,
-                    pointHoverRadius: 8,
+                    pointHoverRadius: 6,
                     pointHoverBackgroundColor: '#4169E1',
                     pointHoverBorderColor: '#ffffff',
-                    pointHoverBorderWidth: 3
+                    pointHoverBorderWidth: 2
                 }
             ]
         },
@@ -427,9 +451,16 @@ function createVolatilityChart() {
                 ...commonOptions.plugins,
                 title: {
                     display: true,
-                    text: '30-Day Rolling Volatility Comparison',
+                    text: 'Rolling Volatility Comparison (30-Period Window)',
                     color: '#FFD700',
                     font: { size: 18 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                        }
+                    }
                 }
             },
             scales: {
@@ -460,35 +491,109 @@ function createVolatilityChart() {
 let interactiveChart;
 let currentDataIndex = 0;
 
+// Calculate performance after each event with custom periods
+function calculateEventPerformance(eventDate, historicalData, eventTitle) {
+    const eventIndex = historicalData.findIndex(d => d.date === eventDate);
+    if (eventIndex === -1) return null;
+    
+    // Determine the period based on event type
+    let monthsAfter = 12; // Default 1 year
+    
+    if (eventTitle.includes('Lehman Brothers')) {
+        monthsAfter = 24; // 2 years
+    } else if (eventTitle.includes('COVID-19') || eventTitle.includes('Pandemic')) {
+        monthsAfter = 6; // 6 months
+    } else if (eventTitle.includes('Russia-Ukraine') || eventTitle.includes('Ukraine')) {
+        monthsAfter = 36; // 5 months
+    } else if (eventTitle.includes('Trump') || eventTitle.includes('Tariffs')) {
+        // Calculate months from event to last data point (Oct 27, 2025)
+        monthsAfter = historicalData.length - eventIndex - 1;
+    }
+    
+    const laterIndex = Math.min(eventIndex + monthsAfter, historicalData.length - 1);
+    const eventPrice = historicalData[eventIndex].price;
+    const laterPrice = historicalData[laterIndex].price;
+    
+    const performance = ((laterPrice - eventPrice) / eventPrice) * 100;
+    
+    return {
+        eventIndex,
+        oneYearLaterIndex: laterIndex, // Keep same property name for compatibility
+        performance,
+        isPositive: performance >= 0,
+        periodMonths: monthsAfter
+    };
+}
+
 function createInteractiveChart() {
     const ctx = document.getElementById('interactiveChart').getContext('2d');
     
     // Use only historical data for interactive timeline
     const historicalData = goldData.prices.filter(d => !d.isForecast);
+    const sp500Historical = sp500Data.prices;
     
     interactiveChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: [historicalData[0].date],
-            datasets: [{
-                label: 'Gold Price Over Time',
-                data: [historicalData[0].price],
-                borderColor: '#FFD700',
-                backgroundColor: 'rgba(255, 215, 0, 0.2)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 8,
-                pointHoverBackgroundColor: '#FFD700',
-                pointHoverBorderColor: '#ffffff',
-                pointHoverBorderWidth: 3
-            }]
+            datasets: [
+                {
+                    label: 'Gold Price',
+                    data: [historicalData[0].price],
+                    borderColor: '#FFD700',
+                    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#FFD700',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3,
+                    yAxisID: 'y',
+                    segment: {
+                        backgroundColor: (ctx) => {
+                            // This will be dynamically updated
+                            return 'rgba(255, 215, 0, 0.2)';
+                        },
+                        borderColor: '#FFD700'
+                    }
+                },
+                {
+                    label: 'S&P 500',
+                    data: [sp500Historical[0].price],
+                    borderColor: '#4169E1',
+                    backgroundColor: 'rgba(65, 105, 225, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#4169E1',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3,
+                    yAxisID: 'y1',
+                    segment: {
+                        backgroundColor: (ctx) => {
+                            // This will be dynamically updated
+                            return 'rgba(65, 105, 225, 0.2)';
+                        },
+                        borderColor: '#4169E1'
+                    }
+                }
+            ]
         },
         options: {
             ...commonOptions,
             animation: {
                 duration: 500
+            },
+            plugins: {
+                ...commonOptions.plugins
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
             },
             scales: {
                 x: {
@@ -498,11 +603,33 @@ function createInteractiveChart() {
                     ticks: { color: '#cccccc' }
                 },
                 y: {
+                    type: 'linear',
+                    position: 'left',
                     beginAtZero: false,
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
                     ticks: {
-                        color: '#cccccc',
+                        color: '#FFD700',
                         callback: value => '$' + value
+                    },
+                    title: {
+                        display: true,
+                        text: 'Gold Price',
+                        color: '#FFD700'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    position: 'right',
+                    beginAtZero: false,
+                    grid: { display: false },
+                    ticks: {
+                        color: '#4169E1',
+                        callback: value => '$' + value
+                    },
+                    title: {
+                        display: true,
+                        text: 'S&P 500',
+                        color: '#4169E1'
                     }
                 }
             }
@@ -513,9 +640,18 @@ function createInteractiveChart() {
 function updateInteractiveChart(index) {
     // Use only historical data
     const historicalData = goldData.prices.filter(d => !d.isForecast);
+    const sp500Historical = sp500Data.prices;
     const dataSlice = historicalData.slice(0, index + 1);
     
-    // Calculate dynamic Y-axis range
+    // Match S&P 500 data to gold's date range
+    const startDate = new Date(historicalData[0].date);
+    const endDate = new Date(historicalData[index].date);
+    const sp500Slice = sp500Historical.filter(d => {
+        const date = new Date(d.date);
+        return date >= startDate && date <= endDate;
+    });
+    
+    // Calculate dynamic Y-axis range for gold
     const prices = dataSlice.map(d => d.price);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
@@ -536,18 +672,93 @@ function updateInteractiveChart(index) {
     const roundedMin = Math.floor((minPrice - padding) / stepSize) * stepSize;
     const roundedMax = Math.ceil((maxPrice + padding) / stepSize) * stepSize;
     
+    // Calculate dynamic Y-axis range for S&P 500
+    const sp500Prices = sp500Slice.map(d => d.price);
+    const minSP500 = Math.min(...sp500Prices);
+    const maxSP500 = Math.max(...sp500Prices);
+    const sp500Range = maxSP500 - minSP500;
+    const sp500Padding = sp500Range * 0.15;
+    
+    const sp500RoundedMin = Math.floor((minSP500 - sp500Padding) / 100) * 100;
+    const sp500RoundedMax = Math.ceil((maxSP500 + sp500Padding) / 100) * 100;
+    
+    // Create arrays to track background colors for each data point
+    const goldBackgroundColors = new Array(dataSlice.length).fill('rgba(255, 215, 0, 0.2)');
+    
+    // Check for active events within the current timeline and color the segments
+    crisisEvents.forEach((event) => {
+        const eventIndex = historicalData.findIndex(d => d.date === event.date);
+        if (eventIndex !== -1 && eventIndex <= index) {
+            const performance = calculateEventPerformance(event.date, historicalData, event.title);
+            if (performance) {
+                // Show highlight from event start, up to current slider position or end of tracking period
+                const endIndex = Math.min(performance.oneYearLaterIndex, index);
+                
+                // Color the segments during the event period for gold only
+                const goldColor = performance.isPositive 
+                    ? 'rgba(0, 255, 0, 0.3)'  // Green for positive gold performance
+                    : 'rgba(255, 0, 0, 0.3)';  // Red for negative gold performance
+                
+                for (let i = eventIndex; i <= endIndex && i < dataSlice.length; i++) {
+                    goldBackgroundColors[i] = goldColor;
+                }
+            }
+        }
+    });
+    
+    // Create a map of S&P 500 prices by date for easy lookup
+    const sp500Map = new Map();
+    sp500Slice.forEach(item => {
+        sp500Map.set(item.date, item.price);
+    });
+    
+    // Map S&P 500 data to match gold's timeline
+    // For dates without S&P 500 data, use the most recent available price
+    let lastKnownSP500Price = sp500Slice[0]?.price || 0;
+    const sp500MappedData = dataSlice.map(goldItem => {
+        if (sp500Map.has(goldItem.date)) {
+            lastKnownSP500Price = sp500Map.get(goldItem.date);
+            return lastKnownSP500Price;
+        }
+        // Use last known price for dates without S&P 500 data
+        return lastKnownSP500Price;
+    });
+    
     interactiveChart.data.labels = dataSlice.map(d => d.date);
     interactiveChart.data.datasets[0].data = dataSlice.map(d => d.price);
+    interactiveChart.data.datasets[1].data = sp500MappedData;
     
-    // Update Y-axis range dynamically with uniform steps
+    // Update the datasets with segment-specific colors
+    interactiveChart.data.datasets[0].segment = {
+        backgroundColor: (ctx) => {
+            const index = ctx.p0DataIndex;
+            return goldBackgroundColors[index] || 'rgba(255, 215, 0, 0.2)';
+        },
+        borderColor: '#FFD700'
+    };
+    
+    // S&P 500 keeps consistent styling without event highlighting
+    interactiveChart.data.datasets[1].segment = {
+        backgroundColor: 'rgba(65, 105, 225, 0.2)',
+        borderColor: '#4169E1'
+    };
+    
+    // Update Y-axis ranges dynamically with uniform steps
     interactiveChart.options.scales.y.min = Math.max(0, roundedMin);
     interactiveChart.options.scales.y.max = roundedMax;
     interactiveChart.options.scales.y.ticks.stepSize = stepSize;
+    
+    interactiveChart.options.scales.y1.min = Math.max(0, sp500RoundedMin);
+    interactiveChart.options.scales.y1.max = sp500RoundedMax;
     
     interactiveChart.update('none');
     
     // Update event info
     const currentPrice = historicalData[index];
+    const currentDate = new Date(currentPrice.date);
+    
+    // Find the closest S&P 500 price for the current date
+    let currentSP500 = sp500Slice[sp500Slice.length - 1]; // Default to last available
     const startPrice = historicalData[0];
     const change = ((currentPrice.price - startPrice.price) / startPrice.price * 100).toFixed(1);
     
@@ -555,14 +766,26 @@ function updateInteractiveChart(index) {
     document.getElementById('goldPrice').textContent = '$' + currentPrice.price.toLocaleString();
     document.getElementById('priceChange').textContent = (change > 0 ? '+' : '') + change + '%';
     
-    // Check if there's a crisis event near this date
-    const nearbyEvent = crisisEvents.find(e => e.date === currentPrice.date);
-    if (nearbyEvent) {
-        document.getElementById('eventTitle').textContent = nearbyEvent.title;
-        document.getElementById('eventDescription').textContent = nearbyEvent.description;
+    // Check if we're within any crisis event period
+    let activeEvent = null;
+    for (const event of crisisEvents) {
+        const eventIndex = historicalData.findIndex(d => d.date === event.date);
+        if (eventIndex !== -1) {
+            const performance = calculateEventPerformance(event.date, historicalData, event.title);
+            if (performance && index >= eventIndex && index <= performance.oneYearLaterIndex) {
+                // We're within this event's tracking period
+                activeEvent = event;
+                break;
+            }
+        }
+    }
+    
+    if (activeEvent) {
+        document.getElementById('eventTitle').textContent = activeEvent.title;
+        document.getElementById('eventDescription').textContent = activeEvent.description;
     } else {
         document.getElementById('eventTitle').textContent = 'Market Activity';
-        document.getElementById('eventDescription').textContent = 'Gold price: $' + currentPrice.price;
+        document.getElementById('eventDescription').textContent = 'Gold: $' + currentPrice.price + ' | S&P 500: $' + currentSP500.price.toFixed(2);
     }
 }
 
@@ -629,6 +852,30 @@ function initializeVisualizations() {
         const historicalData = goldData.prices.filter(d => !d.isForecast);
         if (historicalData.length > 0) {
             slider.max = historicalData.length - 1;
+            
+            // Create event markers on the slider (excluding Trump Tariffs)
+            const markerContainer = document.getElementById('eventMarkers');
+            if (markerContainer) {
+                crisisEvents.forEach(event => {
+                    // Skip Trump Tariffs event
+                    if (event.title.includes('Trump') || event.title.includes('Tariff')) {
+                        return;
+                    }
+                    
+                    const eventIndex = historicalData.findIndex(d => d.date === event.date);
+                    if (eventIndex !== -1) {
+                        const performance = calculateEventPerformance(event.date, historicalData, event.title);
+                        if (performance) {
+                            const marker = document.createElement('div');
+                            marker.className = 'event-marker'; // Remove color-based classes
+                            marker.style.left = `${(eventIndex / (historicalData.length - 1)) * 100}%`;
+                            marker.title = `${event.title}: ${performance.performance.toFixed(1)}% over ${performance.periodMonths} months`;
+                            markerContainer.appendChild(marker);
+                        }
+                    }
+                });
+            }
+            
             slider.addEventListener('input', (e) => {
                 const index = parseInt(e.target.value);
                 updateInteractiveChart(index);
