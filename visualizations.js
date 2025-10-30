@@ -1,5 +1,49 @@
 // ==================== CHART CONFIGURATIONS ====================
 
+// Legend helpers to render line previews instead of boxes
+const forecastLegendIconCache = new Map();
+const defaultLegendLabelGenerator = (typeof Chart !== 'undefined' && Chart.defaults?.plugins?.legend?.labels?.generateLabels)
+    ? Chart.defaults.plugins.legend.labels.generateLabels
+    : () => [];
+
+function getForecastLegendIcon(color) {
+    const key = color || '#FFD700';
+    if (forecastLegendIconCache.has(key)) {
+        return forecastLegendIconCache.get(key);
+    }
+
+    const width = 48;
+    const height = 14;
+    const dpr = window.devicePixelRatio || 1;
+    const canvas = document.createElement('canvas');
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle = key;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+
+    const segments = 3;
+    const interval = width / (segments * 2 + 1);
+    let x = interval;
+    const y = height / 2;
+
+    for (let i = 0; i < segments; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + interval, y);
+        ctx.stroke();
+        x += interval * 2;
+    }
+
+    forecastLegendIconCache.set(key, canvas);
+    return canvas;
+}
+
 // Common chart options
 const commonOptions = {
     responsive: true,
@@ -8,7 +52,43 @@ const commonOptions = {
         legend: {
             labels: {
                 color: '#FFD700',
-                font: { size: 16, weight: 'bold' }
+                font: { size: 16, weight: 'bold' },
+                usePointStyle: true,
+                boxWidth: 48,
+                boxHeight: 12,
+                pointStyleWidth: 48,
+                padding: 16,
+                generateLabels(chart) {
+                    const labels = defaultLegendLabelGenerator.call(this, chart);
+                    return labels.map(label => {
+                        const dataset = chart.data.datasets?.[label.datasetIndex];
+                        if (!dataset) {
+                            return label;
+                        }
+
+                        const datasetType = dataset.type || chart.config.type;
+                        if (datasetType === 'line') {
+                            const borderColor = Array.isArray(dataset.borderColor)
+                                ? dataset.borderColor[0]
+                                : dataset.borderColor || '#FFFFFF';
+
+                            label.fillStyle = 'rgba(0, 0, 0, 0)';
+                            label.strokeStyle = borderColor;
+                            label.lineWidth = dataset.borderWidth ?? 3;
+                            label.lineDash = dataset.borderDash || [];
+                            label.lineDashOffset = dataset.borderDashOffset || 0;
+
+                            if (dataset.label && dataset.label.toLowerCase().includes('forecast')) {
+                                label.pointStyle = getForecastLegendIcon(borderColor);
+                                label.lineDash = [];
+                                label.lineDashOffset = 0;
+                            } else {
+                                label.pointStyle = 'line';
+                            }
+                        }
+                        return label;
+                    });
+                }
             }
         },
         tooltip: {
@@ -224,7 +304,7 @@ function createGoldVsStocksChart() {
             labels: historicalGold.map(d => d.date),
             datasets: [
                 {
-                    label: '$100 in Gold (2000)',
+                    label: 'Gold',
                     data: historicalGold.map(d => (d.price / goldBase) * 100),
                     borderColor: '#FFD700',
                     backgroundColor: 'rgba(255, 215, 0, 0.1)',
@@ -239,7 +319,7 @@ function createGoldVsStocksChart() {
                     pointHoverBorderWidth: 3
                 },
                 {
-                    label: '$100 in S&P 500 (2000)',
+                    label: 'S&P 500',
                     data: sp500MappedData,
                     borderColor: '#4169E1',
                     backgroundColor: 'rgba(65, 105, 225, 0.1)',
@@ -261,7 +341,7 @@ function createGoldVsStocksChart() {
                 ...commonOptions.plugins,
                 title: {
                     display: true,
-                    text: 'Growth of $100 Invested in 2000',
+                    text: 'Growth of $100 Invested in the year 2000',
                     color: '#FFD700',
                     font: { size: 18 }
                 }
@@ -1154,6 +1234,8 @@ function createGoldStockDonut() {
 // ==================== CHART 6: INTERACTIVE TIMELINE ====================
 let interactiveChart;
 let currentDataIndex = 0;
+const INTERACTIVE_TIMELINE_EXCLUSIONS = new Set(['Gold Reaches Record High']);
+const interactiveTimelineEvents = crisisEvents.filter(event => !INTERACTIVE_TIMELINE_EXCLUSIONS.has(event.title));
 
 // Calculate performance after each event with custom periods
 function calculateEventPerformance(eventDate, historicalData, eventTitle) {
@@ -1226,7 +1308,7 @@ function createInteractiveChart() {
                     }
                 },
                 {
-                    label: 'S&P 500',
+                    label: 'S&P 500 Price',
                     data: [sp500Historical[0].price],
                     borderColor: '#4169E1',
                     backgroundColor: 'rgba(65, 105, 225, 0.2)',
@@ -1352,7 +1434,7 @@ function updateInteractiveChart(index) {
     const goldBackgroundColors = new Array(dataSlice.length).fill('rgba(255, 215, 0, 0.2)');
     
     // Check for active events within the current timeline and color the segments
-    crisisEvents.forEach((event) => {
+    interactiveTimelineEvents.forEach((event) => {
         const eventIndex = historicalData.findIndex(d => d.date === event.date);
         if (eventIndex !== -1 && eventIndex <= index) {
             const performance = calculateEventPerformance(event.date, historicalData, event.title);
@@ -1434,7 +1516,7 @@ function updateInteractiveChart(index) {
     
     // Check if we're within any crisis event period
     let activeEvent = null;
-    for (const event of crisisEvents) {
+    for (const event of interactiveTimelineEvents) {
         const eventIndex = historicalData.findIndex(d => d.date === event.date);
         if (eventIndex !== -1) {
             const performance = calculateEventPerformance(event.date, historicalData, event.title);
@@ -1525,7 +1607,7 @@ function initializeVisualizations() {
             // Create event markers on the slider (excluding Trump Tariffs)
             const markerContainer = document.getElementById('eventMarkers');
             if (markerContainer) {
-                crisisEvents.forEach(event => {
+                interactiveTimelineEvents.forEach(event => {
                     // Skip Trump Tariffs event
                     if (event.title.includes('Trump') || event.title.includes('Tariff')) {
                         return;
