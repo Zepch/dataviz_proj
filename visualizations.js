@@ -570,7 +570,7 @@ function createVolatilityChart() {
                 ...commonOptions.plugins,
                 title: {
                     display: true,
-                    text: 'Market Volatility Comparison - Major Crisis Events Highlighted',
+                    text: 'Market Volatility Comparison',
                     color: '#FFD700',
                     font: { size: 18 }
                 },
