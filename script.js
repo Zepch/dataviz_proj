@@ -126,6 +126,17 @@ function animateValue(element, start, end, duration) {
     const range = end - start;
     const increment = range / (duration / 16);
     let current = start;
+    const prefix = element.dataset.prefix || '';
+    const suffix = element.dataset.suffix || '';
+
+    const render = (value) => {
+        const nearZero = Math.abs(value) < 1e-6;
+        const effectivePrefix = nearZero ? '' : (prefix || (value < 0 ? '-' : ''));
+        const displayValue = Math.abs(value).toFixed(1);
+        element.textContent = `${effectivePrefix}${displayValue}${suffix}`;
+    };
+
+    render(current);
     
     const timer = setInterval(() => {
         current += increment;
@@ -133,7 +144,7 @@ function animateValue(element, start, end, duration) {
             current = end;
             clearInterval(timer);
         }
-        element.textContent = current.toFixed(1) + (element.dataset.suffix || '');
+        render(current);
     }, 16);
 }
 
@@ -144,9 +155,15 @@ const statObserver = new IntersectionObserver((entries) => {
             entry.target.classList.add('animated');
             const number = entry.target.querySelector('.stat-number');
             if (number) {
-                const targetValue = parseFloat(number.dataset.value || number.textContent);
-                const suffix = number.textContent.replace(/[0-9.-]/g, '');
+                const text = number.textContent.trim();
+                const prefix = text.startsWith('+') ? '+' : text.startsWith('-') ? '-' : '';
+                const suffix = text.replace(/^[+\-]?\d*\.?\d*/, '');
+                const targetValue = parseFloat(text.replace(/[^0-9.+-]/g, '')) || 0;
+                
+                number.dataset.prefix = prefix;
                 number.dataset.suffix = suffix;
+                number.dataset.value = targetValue;
+
                 animateValue(number, 0, targetValue, 1000);
             }
         }

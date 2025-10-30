@@ -44,6 +44,26 @@ function getForecastLegendIcon(color) {
     return canvas;
 }
 
+function formatTooltipTitle(items) {
+    if (!items || items.length === 0) {
+        return '';
+    }
+    
+    const item = items[0];
+    const rawValue = (item.raw && item.raw.x) || item.parsed?.x || item.label;
+    
+    if (!rawValue) {
+        return item.label || '';
+    }
+    
+    const date = new Date(rawValue);
+    if (Number.isNaN(date.getTime())) {
+        return typeof rawValue === 'string' ? rawValue : (item.label || '');
+    }
+    
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 // Common chart options
 const commonOptions = {
     responsive: true,
@@ -99,7 +119,27 @@ const commonOptions = {
             borderWidth: 2,
             padding: 12,
             titleFont: { size: 16, weight: 'bold' },
-            bodyFont: { size: 14 }
+            bodyFont: { size: 14 },
+            usePointStyle: true,
+            callbacks: {
+                title: formatTooltipTitle,
+                labelPointStyle() {
+                    return {
+                        pointStyle: 'circle',
+                        rotation: 0
+                    };
+                },
+                labelColor(context) {
+                    const dataset = context.dataset || {};
+                    const color = Array.isArray(dataset.borderColor)
+                        ? dataset.borderColor[0]
+                        : dataset.borderColor || dataset.backgroundColor || '#FFFFFF';
+                    return {
+                        borderColor: color,
+                        backgroundColor: color
+                    };
+                }
+            }
         }
     },
     scales: {
@@ -535,7 +575,9 @@ function createVolatilityChart() {
                     font: { size: 18 }
                 },
                 tooltip: {
+                    ...commonOptions.plugins.tooltip,
                     callbacks: {
+                        ...((commonOptions.plugins.tooltip && commonOptions.plugins.tooltip.callbacks) || {}),
                         label: function(context) {
                             return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
                         }

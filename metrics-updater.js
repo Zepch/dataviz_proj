@@ -10,6 +10,20 @@ function updateMetricsInHTML() {
     }
     
     console.log('📊 Updating HTML with calculated metrics...');
+
+    const formatSignedPercent = (value, decimals = 1) => {
+        if (typeof value !== 'number' || !isFinite(value)) {
+            return 'N/A';
+        }
+        const absValue = Math.abs(value).toFixed(decimals);
+        if (value > 0) {
+            return `+${absValue}%`;
+        }
+        if (value < 0) {
+            return `-${absValue}%`;
+        }
+        return `${absValue}%`;
+    };
     
     // Section 2: Key Insight - Gold total return
     const totalReturnElement = document.querySelector('#slide-1 .insight-box .highlight');
@@ -39,12 +53,12 @@ function updateMetricsInHTML() {
     
     if (goldCrisisStat) {
         const value = calculatedMetrics.goldCrisisPerformance;
-        goldCrisisStat.textContent = (value >= 0 ? '+' : '') + value.toFixed(0) + '%';
+        goldCrisisStat.textContent = formatSignedPercent(value);
     }
     
     if (sp500CrisisStat) {
         const value = calculatedMetrics.sp500CrisisPerformance;
-        sp500CrisisStat.textContent = (value >= 0 ? '+' : '') + value.toFixed(0) + '%';
+        sp500CrisisStat.textContent = formatSignedPercent(value);
     }
     
     // Section 4: Correlation value

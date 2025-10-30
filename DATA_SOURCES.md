@@ -1,7 +1,5 @@
 # Data Sources Guide
 
-## Where to Download Your Real Data
-
 ### 1. **Gold Prices (gold_prices.csv)**
 
 **Primary Source: Yahoo Finance**
