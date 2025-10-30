@@ -652,7 +652,7 @@ function createGoldDistributionTreemap(yearData) {
             // Title (category name) - Always visible
             const titleText = group.append('text')
                 .attr('x', xCenter)
-                .attr('y', yCenter - percentFont / 3)
+                .attr('y', yCenter - (percentFont * 0.8))
                 .attr('text-anchor', 'middle')
                 .attr('fill', '#1a1a1a')
                 .attr('font-size', `${titleFont}px`)
@@ -662,7 +662,7 @@ function createGoldDistributionTreemap(yearData) {
             // Percentage - Always visible
             const percentText = group.append('text')
                 .attr('x', xCenter)
-                .attr('y', yCenter + percentFont / 2)
+                .attr('y', yCenter + (percentFont * 0.9))
                 .attr('text-anchor', 'middle')
                 .attr('fill', '#1a1a1a')
                 .attr('font-size', `${percentFont}px`)
@@ -672,7 +672,7 @@ function createGoldDistributionTreemap(yearData) {
             // Tonnes (hidden by default, shown on hover)
             const tonnesText = group.append('text')
                 .attr('x', xCenter)
-                .attr('y', yCenter + percentFont / 2)
+                .attr('y', yCenter + (percentFont * 0.9))
                 .attr('text-anchor', 'middle')
                 .attr('fill', '#1a1a1a')
                 .attr('font-size', `${tonnesFont}px`)
