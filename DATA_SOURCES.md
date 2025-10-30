@@ -1,109 +1,7 @@
-# Data Sources Guide
+# Data Sources
+Note that the data in CSV are parsed to data.js for faster retrieval & loading time
 
-### 1. **Gold Prices (gold_prices.csv)**
-
-**Primary Source: Yahoo Finance**
-- Go to: https://finance.yahoo.com/quote/GC%3DF/history/
-- This is Gold Futures (GC=F)
-- Settings:
-  - Time Period: Jan 1, 2000 - Present
-  - Show: Historical Prices
-  - Frequency: Monthly (or Daily for more detail)
-- Click "Download" button
-- Columns needed: Date, Close
-- Rename to: `Date,Price`
-
-**Alternative Source: Investing.com**
-- Go to: https://www.investing.com/commodities/gold-historical-data
-- Select date range: 01/01/2000 to current
-- Click "Download Data"
-- Use the "Price" column
-
-**Alternative Source: World Gold Council**
-- Go to: https://www.gold.org/goldhub/data/gold-prices
-- Download: "Gold price averages in a range of currencies since 1978"
-- Use USD column
-
----
-
-### 2. **S&P 500 Index (sp500.csv)**
-
-**Primary Source: Yahoo Finance**
-- Go to: https://finance.yahoo.com/quote/%5EGSPC/history/
-- This is S&P 500 Index (^GSPC)
-- Settings:
-  - Time Period: Jan 1, 2000 - Present
-  - Show: Historical Prices
-  - Frequency: Monthly
-- Click "Download" button
-- Columns needed: Date, Close
-- Rename to: `Date,Price`
-
-**Alternative Source: Investing.com**
-- Go to: https://www.investing.com/indices/us-spx-500-historical-data
-- Select date range: 01/01/2000 to current
-- Download data
-
----
-
-### 3. **US Inflation / CPI (inflation_cpi.csv)**
-
-**Primary Source: FRED (Federal Reserve Economic Data)**
-- Go to: https://fred.stlouisfed.org/series/CPIAUCSL
-- This is Consumer Price Index for All Urban Consumers
-- Click "Download" button
-- Select:
-  - Units: "Percent Change from Year Ago"
-  - Frequency: Annual or Monthly
-  - Date Range: 2000-01-01 to current
-- Format: CSV
-- Columns needed: Date, Value
-- Rename to: `Date,Rate`
-
-**Alternative: Calculate from raw CPI**
-- Go to: https://www.bls.gov/cpi/data.htm
-- Download CPI-U (All items)
-- Calculate year-over-year percentage change
-
-**Quick Download Link:**
-- https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL&cosd=2000-01-01&transformation=pc1
-
----
-
-## CSV Format Requirements
-
-### gold_prices.csv
-```csv
-Date,Price
-2000-01-01,282.85
-2000-02-01,299.85
-2000-03-01,286.40
-...
-```
-
-### sp500.csv
-```csv
-Date,Price
-2000-01-01,1469.25
-2000-02-01,1366.42
-2000-03-01,1498.58
-...
-```
-
-### inflation_cpi.csv
-```csv
-Date,Rate
-2000-01-01,3.38
-2001-01-01,2.83
-2002-01-01,1.59
-...
-```
-
----
-
-## Quick Download Steps
-
-### For Gold & S&P 500 (Easiest):
+### For Gold & S&P 500:
 1. **Gold**: Go to `https://finance.yahoo.com/quote/GC%3DF/history?period1=946684800&period2=1730246400`
 2. Click "Download" → Save as `gold_yahoo.csv`
 3. Open in Excel, keep only Date and Close columns
@@ -114,16 +12,14 @@ Date,Rate
 7. Open in Excel, keep only Date and Close columns
 8. Save as `sp500.csv`
 
-### For Inflation (Easiest):
+### For Inflation:
 1. Go to: `https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL&cosd=2000-01-01&transformation=pc1`
 2. This will directly download the CSV with year-over-year inflation rates
 3. Save as `inflation_cpi.csv`
 
 ---
 
-## Additional Data for Enhanced Visualizations
-
-### 4. **VIX (CBOE Volatility Index) - volatility_vix.csv** ✅ IMPLEMENTED
+### 4. **VIX (CBOE Volatility Index) - volatility_vix.csv**
 **Primary Source: Chicago Board Options Exchange (CBOE)**
 - Official website: https://www.cboe.com/tradable_products/vix/
 - Historical data: https://www.cboe.com/us/indices/dashboard/VIX/
@@ -140,7 +36,7 @@ Date,Rate
 - **Source Used**: CBOE official VIX historical data combined with Investing.com verification
 - **CSV Location**: `/data/volatility_vix.csv`
 
-### 5. **Gold Volatility Index - volatility_gold.csv** ✅ IMPLEMENTED
+### 5. **Gold Volatility Index - volatility_gold.csv**
 **Sources: Multiple Market Analysis**
 - **Method**: Calculated from historical gold price volatility patterns
 - **Reference Data**:
@@ -158,7 +54,7 @@ Date,Rate
 - **Note**: While there is no official "GVZ" with extensive history like VIX, this data represents industry-standard volatility calculations from gold price movements
 - **CSV Location**: `/data/volatility_gold.csv`
 
-### 6. **Gold Supply & Above-Ground Stocks (Treemap + 3D Cube)** ✅ UPDATED END-2024
+### 6. **Gold Supply & Above-Ground Stocks (Treemap + 3D Cube)**
 **Primary Source: World Gold Council – Goldhub**
 - Above-ground stock by sector (end-2024): https://www.gold.org/goldhub/data/how-much-gold
   - **Total above-ground stock**: 216,265 tonnes
@@ -169,15 +65,6 @@ Date,Rate
 - All gold ever mined would fit in a cube measuring **22m × 22m × 22m**
 - About **two-thirds** of all gold has been extracted since 1950
 - Gold is virtually indestructible - almost all gold ever mined still exists in some form
-
-**Implementation Notes**
-- Embedded in `data.js` as `goldDistributionData` for treemap and 3D cube visuals
-- Treemap (`#goldDistributionTreemap`) shows category name + percentage (default), tonnes on hover
-- 3D Cube (`#goldCube3D`) visualizes the 22m cube with human figure for scale
-- Data source: World Gold Council (February 2025 update)
-- Data quality: Official figures from the world's leading authority on gold market intelligence
-- Visualization emphasizes gold's rarity - all mined gold fits in a cube smaller than a 7-story building
-- Cite World Gold Council, Goldhub (End-2024 data) in presentations
 
 ### 7. **USD Index (DXY)** - for currency strength
 - **Investing.com**: https://www.investing.com/indices/usdollar-historical-data
@@ -195,24 +82,7 @@ Date,Rate
 
 ---
 
-## File Structure
-```
-dataviz_proj/
-├── data/
-│   ├── gold_prices.csv       ← [Deprecated] Now embedded in data.js
-│   ├── sp500.csv             ← [Deprecated] Now embedded in data.js
-│   ├── inflation_cpi.csv     ← [Deprecated] Now embedded in data.js
-│   ├── volatility_vix.csv    ← ✅ NEW: CBOE VIX historical data
-│   └── volatility_gold.csv   ← ✅ NEW: Gold volatility estimates
-├── index.html
-├── data.js                   ← Contains all embedded data + volatility
-├── script.js
-└── visualizations.js
-```
-
----
-
-## Recent Data Updates (October 2025)
+## Recent Data Updates (NEW)
 
 ### Updated Data Sources Used
 
@@ -269,8 +139,6 @@ dataviz_proj/
 
 **Current Setup (as of October 29, 2025):**
 - All data is now **embedded directly in `data.js`** file
-- CSV loader (`csv-loader.js`) is **no longer used**
-- CSV files in `data/` folder are **deprecated**
 - Interpolation function creates monthly data points automatically
 - Forecast function generates projections to December 2027
 
