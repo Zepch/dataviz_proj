@@ -160,9 +160,26 @@ Date,Rate
 - **Note**: While there is no official "GVZ" with extensive history like VIX, this data represents industry-standard volatility calculations from gold price movements
 - **CSV Location**: `/data/volatility_gold.csv`
 
-### 6. **Gold Production/Reserves (Optional for infographic)**
-- **World Gold Council**: https://www.gold.org/goldhub/data/gold-supply-and-demand-statistics
-- Shows global gold mining, jewelry demand, central bank holdings
+### 6. **Gold Supply & Above-Ground Stocks (Treemap + 3D Cube)** ✅ UPDATED END-2024
+**Primary Source: World Gold Council – Goldhub**
+- Above-ground stock by sector (end-2024): https://www.gold.org/goldhub/data/how-much-gold
+  - **Total above-ground stock**: 216,265 tonnes
+  - Jewellery: 97,149 tonnes (45.0%)
+  - Bars & Coins (including ETFs): 48,634 tonnes (22.0%)
+  - Central Banks: 37,755 tonnes (17.0%)
+  - Other (technology, dentistry, etc.): 32,727 tonnes (15.0%)
+- All gold ever mined would fit in a cube measuring **22m × 22m × 22m**
+- About **two-thirds** of all gold has been extracted since 1950
+- Gold is virtually indestructible - almost all gold ever mined still exists in some form
+
+**Implementation Notes**
+- Embedded in `data.js` as `goldDistributionData` for treemap and 3D cube visuals
+- Treemap (`#goldDistributionTreemap`) shows category name + percentage (default), tonnes on hover
+- 3D Cube (`#goldCube3D`) visualizes the 22m cube with human figure for scale
+- Data source: World Gold Council (February 2025 update)
+- Data quality: Official figures from the world's leading authority on gold market intelligence
+- Visualization emphasizes gold's rarity - all mined gold fits in a cube smaller than a 7-story building
+- Cite World Gold Council, Goldhub (End-2024 data) in presentations
 
 ### 7. **USD Index (DXY)** - for currency strength
 - **Investing.com**: https://www.investing.com/indices/usdollar-historical-data

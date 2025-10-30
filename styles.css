@@ -233,6 +233,201 @@ canvas {
     min-height: 500px !important;
 }
 
+.chart-container.compact {
+    min-height: unset;
+    padding: 30px;
+    margin-bottom: 0;
+}
+
+.chart-container.compact canvas {
+    min-height: 360px !important;
+    max-height: 420px !important;
+}
+
+.distribution-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.chart-caption {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: var(--gold);
+    text-align: left;
+}
+
+.treemap-wrapper {
+    width: 100%;
+    height: 380px; /* Reduced from 420px to make room for slider */
+}
+
+/* Gold Distribution Timeline Controls */
+.gold-timeline-controls {
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(218, 165, 32, 0.05));
+    border-radius: 10px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.timeline-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gold);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.timeline-icon {
+    font-size: 1.3rem;
+}
+
+.current-year {
+    color: var(--gold);
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.gold-year-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.3), var(--gold));
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 10px 0;
+}
+
+.gold-year-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.gold-year-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.gold-year-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.gold-year-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.year-markers {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 5px;
+    margin-top: 5px;
+}
+
+.year-markers span {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+
+.timeline-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 215, 0, 0.15);
+    font-size: 0.9rem;
+    color: var(--text-gray);
+}
+
+#goldStockInfo {
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.timeline-fact {
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.gold-cube-3d-container {
+    width: 100%;
+    height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(218, 165, 32, 0.05));
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.gold-cube-3d-container svg {
+    width: 100%;
+    height: 100%;
+}
+
+.human-figure {
+    transition: transform 0.3s ease;
+}
+
+.gold-cube {
+    transition: filter 0.3s ease;
+}
+
+.gold-cube-3d-container:hover .gold-cube {
+    filter: brightness(1.1) url(#glow);
+}
+
+.chart-footnote {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 20px;
+}
+
+.chart-footnote.centered {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.insight-box.mini {
+    margin-top: 30px;
+    padding: 20px;
+    text-align: left;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(218, 165, 32, 0.08));
+}
+
+.insight-box.mini .highlight {
+    font-size: 1.4em;
+}
+
+.insight-box.mini .mini-detail {
+    margin-top: 12px;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+
 /* ==================== INSIGHT BOXES ==================== */
 .insight-box {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(218, 165, 32, 0.1));

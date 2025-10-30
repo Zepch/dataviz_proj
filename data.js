@@ -623,6 +623,47 @@ const inflationData = {
     ]
 };
 
+// ==================== GOLD SUPPLY & DISTRIBUTION (WORLD GOLD COUNCIL) ====================
+// Above-ground stock distribution values sourced from World Gold Council, Goldhub 2023 data
+const goldAboveGroundDistribution = [
+    { name: 'Jewelry', tonnes: 95547 },
+    { name: 'Private investment (bars & coins)', tonnes: 47838 },
+    { name: 'Official sector (central banks)', tonnes: 35715 },
+    { name: 'Technology & other fabrication', tonnes: 29774 }
+];
+
+const totalAboveGroundTonnes = goldAboveGroundDistribution.reduce((sum, item) => sum + item.tonnes, 0);
+
+const goldSupplyComposition = {
+    distribution: goldAboveGroundDistribution.map(item => ({
+        ...item,
+        share: parseFloat(((item.tonnes / totalAboveGroundTonnes) * 100).toFixed(1))
+    })),
+    stockTotals: (() => {
+        const annualMineProductionTonnes = 3644; // 2023 global mine output (World Gold Council)
+        const existingStockTonnes = totalAboveGroundTonnes - annualMineProductionTonnes;
+        const mineProductionShare = parseFloat(((annualMineProductionTonnes / totalAboveGroundTonnes) * 100).toFixed(2));
+        return {
+            year: 2023,
+            totalAboveGroundStockTonnes: totalAboveGroundTonnes,
+            annualMineProductionTonnes,
+            existingStockTonnes,
+            mineProductionShare
+        };
+    })()
+};
+
+goldSupplyComposition.stockComparison = [
+    {
+        label: '2023 Mine Production',
+        value: goldSupplyComposition.stockTotals.annualMineProductionTonnes
+    },
+    {
+        label: 'Existing Above-Ground Stock',
+        value: goldSupplyComposition.stockTotals.existingStockTonnes
+    }
+];
+
 // Interpolate inflation data to monthly
 inflationData.data = interpolateMonthly(inflationData.data.map(d => ({ date: d.date, price: d.rate })))
     .map(d => ({ date: d.date, rate: d.price }));
@@ -685,6 +726,7 @@ window.sp500Data = sp500Data;
 window.inflationData = inflationData;
 window.crisisEvents = crisisEvents;
 window.volatilityData = volatilityData;
+window.goldSupplyComposition = goldSupplyComposition;
 
 // ==================== CALCULATION FUNCTIONS ====================
 
@@ -814,3 +856,542 @@ console.log('  Gold Avg Volatility:', calculatedMetrics.goldAvgVolatility.toFixe
 console.log('  S&P 500 Avg Volatility:', calculatedMetrics.sp500AvgVolatility.toFixed(1) + '%');
 console.log('  Gold-Inflation Correlation:', calculatedMetrics.goldInflationCorrelation.toFixed(2));
 console.log('Crisis events:', crisisEvents.length);
+
+// ==================== GOLD DISTRIBUTION DATA WITH HISTORICAL TIMELINE ====================
+// ACTUAL DATA from World Gold Council (2010-2024)
+// Source: above-ground-gold-stocks.xlsx
+// Metals Focus, Refinitiv GFMS, World Gold Council
+// https://www.gold.org/goldhub/data/how-much-gold
+
+window.goldDistributionTimeline = [
+  {
+    "year": 2010,
+    "totalGold": 168246,
+    "cubeSize": 2.06,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 84073,
+        "percentage": 50.0,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 28943,
+        "percentage": 17.2,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 28979,
+        "percentage": 17.2,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 23983,
+        "percentage": 14.3,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2011,
+    "totalGold": 171145,
+    "cubeSize": 2.07,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 84538,
+        "percentage": 49.4,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 30445,
+        "percentage": 17.8,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 29460,
+        "percentage": 17.2,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 24192,
+        "percentage": 14.1,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2012,
+    "totalGold": 174057,
+    "cubeSize": 2.08,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 85043,
+        "percentage": 48.9,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 31767,
+        "percentage": 18.3,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 30029,
+        "percentage": 17.3,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 24415,
+        "percentage": 14.0,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2013,
+    "totalGold": 177196,
+    "cubeSize": 2.09,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 86583,
+        "percentage": 48.9,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 33497,
+        "percentage": 18.9,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 30659,
+        "percentage": 17.3,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 24584,
+        "percentage": 13.9,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2014,
+    "totalGold": 180573,
+    "cubeSize": 2.11,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 87997,
+        "percentage": 48.7,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 34564,
+        "percentage": 19.1,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 31260,
+        "percentage": 17.3,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 25041,
+        "percentage": 13.9,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2015,
+    "totalGold": 183948,
+    "cubeSize": 2.12,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 89409,
+        "percentage": 48.6,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 35655,
+        "percentage": 19.4,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 31839,
+        "percentage": 17.3,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 25457,
+        "percentage": 13.8,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2016,
+    "totalGold": 187502,
+    "cubeSize": 2.13,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 90196,
+        "percentage": 48.1,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 36728,
+        "percentage": 19.6,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 32234,
+        "percentage": 17.2,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 26213,
+        "percentage": 14.0,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2017,
+    "totalGold": 191057,
+    "cubeSize": 2.15,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 91341,
+        "percentage": 47.8,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 37772,
+        "percentage": 19.8,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 32613,
+        "percentage": 17.1,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 26930,
+        "percentage": 14.1,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2018,
+    "totalGold": 194704,
+    "cubeSize": 2.16,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 92499,
+        "percentage": 47.5,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 38863,
+        "percentage": 20.0,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 33269,
+        "percentage": 17.1,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 27601,
+        "percentage": 14.2,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2019,
+    "totalGold": 198315,
+    "cubeSize": 2.17,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 93375,
+        "percentage": 47.1,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 39734,
+        "percentage": 20.0,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 33874,
+        "percentage": 17.1,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 28457,
+        "percentage": 14.3,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2020,
+    "totalGold": 201763,
+    "cubeSize": 2.19,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 93405,
+        "percentage": 46.3,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 40636,
+        "percentage": 20.1,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 34129,
+        "percentage": 16.9,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 29823,
+        "percentage": 14.8,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2021,
+    "totalGold": 205330,
+    "cubeSize": 2.2,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 94500,
+        "percentage": 46.0,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 41817,
+        "percentage": 20.4,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 34579,
+        "percentage": 16.8,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 30854,
+        "percentage": 15.0,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2022,
+    "totalGold": 208949,
+    "cubeSize": 2.21,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 95559,
+        "percentage": 45.7,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 43039,
+        "percentage": 20.6,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 35659,
+        "percentage": 17.1,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 31222,
+        "percentage": 14.9,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2023,
+    "totalGold": 212661,
+    "cubeSize": 2.23,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 96516,
+        "percentage": 45.4,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 44229,
+        "percentage": 20.8,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 36710,
+        "percentage": 17.3,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 31981,
+        "percentage": 15.0,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  },
+  {
+    "year": 2024,
+    "totalGold": 216265,
+    "cubeSize": 2.24,
+    "categories": [
+      {
+        "name": "Jewellery",
+        "tonnes": 97149,
+        "percentage": 44.9,
+        "color": "#FFD700",
+        "description": "Gold used in jewelry and ornaments"
+      },
+      {
+        "name": "Bars & Coins",
+        "tonnes": 45415,
+        "percentage": 21.0,
+        "color": "#FFA500",
+        "description": "Physical investment gold in bar and coin form"
+      },
+      {
+        "name": "Central Banks",
+        "tonnes": 37755,
+        "percentage": 17.5,
+        "color": "#DAA520",
+        "description": "Official gold reserves held by central banks"
+      },
+      {
+        "name": "Other",
+        "tonnes": 32727,
+        "percentage": 15.1,
+        "color": "#B8860B",
+        "description": "Electronics, dentistry, and other industrial uses"
+      }
+    ]
+  }
+];
+
+// Set current data to most recent year
+const latestGoldDistribution = window.goldDistributionTimeline[window.goldDistributionTimeline.length - 1];
+window.goldDistributionData = JSON.parse(JSON.stringify(latestGoldDistribution));
+window.goldDistributionData.cubeSize = 22;

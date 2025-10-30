@@ -23,6 +23,7 @@
         <button class="nav-dot" data-section="4" aria-label="Section 5"></button>
         <button class="nav-dot" data-section="5" aria-label="Section 6"></button>
         <button class="nav-dot" data-section="6" aria-label="Section 7"></button>
+        <button class="nav-dot" data-section="7" aria-label="Section 8"></button>
     </nav>
 
     <!-- Section 1: Title/Intro -->
@@ -127,8 +128,56 @@
         </div>
     </section>
 
-    <!-- Section 6: Interactive Timeline Explorer -->
+    <!-- Section 6: Gold Supply & Distribution -->
     <section class="slide" id="slide-5">
+        <div class="container">
+            <h2 class="section-title">Gold is Incredibly Rare 🏆</h2>
+            <p class="section-subtitle">All 216,265 tonnes of gold ever mined would fit in a single 22m cube</p>
+            <div class="distribution-grid">
+                <div class="chart-container compact">
+                    <h3 class="chart-caption">Above-Ground Gold Stock Distribution</h3>
+                    
+                    <!-- Timeline Slider -->
+                    <div class="gold-timeline-controls">
+                        <label for="goldYearSlider" class="timeline-label">
+                            <span class="timeline-icon">📅</span>
+                            Year: <span id="currentGoldYear" class="current-year">2024</span>
+                        </label>
+                        <input type="range" id="goldYearSlider" class="gold-year-slider" 
+                               min="0" max="14" value="14" step="1">
+                        <div class="year-markers">
+                            <span>2010</span>
+                            <span>2013</span>
+                            <span>2016</span>
+                            <span>2019</span>
+                            <span>2022</span>
+                            <span>2024</span>
+                        </div>
+                        <p class="timeline-info">
+                            <span id="goldStockInfo">Total: 216,265 tonnes</span>
+                            <span class="timeline-fact">💡 Data: World Gold Council (2010-2024)</span>
+                        </p>
+                    </div>
+                    
+                    <div id="goldDistributionTreemap" class="treemap-wrapper"></div>
+                    <p class="chart-footnote">Hover over categories to see tonnes. Distribution shifts over time as investment demand grows.</p>
+                </div>
+                <div class="chart-container compact">
+                    <h3 class="chart-caption">The Gold Cube: All Mined Gold in One Place</h3>
+                    <div id="goldCube3D" class="gold-cube-3d-container"></div>
+                    <div class="insight-box mini">
+                        <p><span class="highlight" id="cubeDimensions">22m x 22m x 22m</span> - That's smaller than a 7-story building!</p>
+                        <p class="mini-detail">💡 If placed in an Olympic pool, all gold would fill just <strong id="poolCount">3.8 pools</strong>.</p>
+                        <p class="mini-detail">⚖️ Gold is virtually indestructible - almost all of it still exists today.</p>
+                    </div>
+                </div>
+            </div>
+            <p class="chart-footnote centered">Source: World Gold Council, Goldhub (Actual data 2010-2024)</p>
+        </div>
+    </section>
+
+    <!-- Section 7: Interactive Timeline Explorer -->
+    <section class="slide" id="slide-6">
         <div class="container">
             <h2 class="section-title">Interactive Timeline: Explore Key Events</h2>
             <p class="section-subtitle">Use the slider to see how gold reacted to global events (green = positive, red = negative over custom periods)</p>
@@ -156,8 +205,8 @@
         </div>
     </section>
 
-    <!-- Section 7: Conclusion / Summary Infographic -->
-    <section class="slide" id="slide-6">
+    <!-- Section 8: Conclusion / Summary Infographic -->
+    <section class="slide" id="slide-7">
         <div class="container">
             <h2 class="section-title">The Verdict: When Does Gold Shine?</h2>
             
@@ -222,3 +271,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
